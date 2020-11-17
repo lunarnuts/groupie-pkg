@@ -2,7 +2,6 @@ package groupie
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -13,15 +12,15 @@ type Relation struct {
 	DatesLocations map[string][]string `json:"datesLocations"`
 }
 
-func Relations() ([]Relation, error) {
+func Relations() ([]Relation, int) {
 	api, err := http.Get("https://groupietrackers.herokuapp.com/api/relation")
 	if err != nil {
 		fmt.Println("Status: 502,BG, Error connecting to API/relations")
-		return nil, errors.New("Bad Gateway")
+		return nil, 502
 	}
 	if api.StatusCode != 200 {
 		fmt.Println("Status: 502,BG, Error connecting to API/relations")
-		return nil, errors.New("Bad Gateway")
+		return nil, 502
 	} else {
 		fmt.Println("Status: 200,OK, Connected to API/relations")
 	}
@@ -31,7 +30,7 @@ func Relations() ([]Relation, error) {
 	err = json.Unmarshal(body[9:len(body)-2], &relations)
 	if err != nil {
 		fmt.Println(err.Error())
-		return nil, err
+		return nil, 500
 	}
-	return relations, nil
+	return relations, 200
 }

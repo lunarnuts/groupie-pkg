@@ -3,7 +3,6 @@ package groupie
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -19,15 +18,16 @@ type Artist struct {
 	Relations    string   `json:"relations"`
 }
 
-func Artists() ([]Artist, error) {
+func Artists() ([]Artist, int) {
 	api, err := http.Get("https://groupietrackers.herokuapp.com/api/artists")
 	if err != nil {
 		fmt.Println("Status: 502,BG, Error connecting to API/artists")
-		return nil, errors.New("Bad Gateway")
+
+		return nil, 502
 	}
 	if api.StatusCode != 200 {
-		fmt.Println("Status: 502,BG, Error connecting to API/artists")
-		return nil, errors.New("Bad Gateway")
+		fmt.Println("Status: 500,IS, Error connecting to API/artists")
+		return nil, 500
 	} else {
 		fmt.Println("Status: 200,OK, Connected to API/artists")
 	}
@@ -37,17 +37,17 @@ func Artists() ([]Artist, error) {
 	err = json.Unmarshal(body, &artists)
 	if err != nil {
 		fmt.Println(err.Error())
-		return nil, err
+		return nil, 500
 	}
 	//var relate []Relation
-	relate, err := Relations()
-	if err != nil {
-		return nil, errors.New("Bad Gateway")
+	relate, er := Relations()
+	if er != 200 {
+		return nil, er
 	}
 	for index := range artists {
 		artists[index].Relations = MapToString(relate[index].DatesLocations)
 	}
-	return artists, nil
+	return artists, 200
 }
 
 func MapToString(m map[string][]string) string {
